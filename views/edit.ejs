@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Post</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+
+<body class="bg-zinc-900">
+
+    <div class="min-h-screen flex items-center justify-center p-6">
+
+        <div class="w-full max-w-2xl bg-zinc-800 p-8 rounded-3xl shadow-2xl">
+
+            <h2 class="text-3xl font-bold text-white mb-2">
+                Edit Post
+            </h2>
+
+            <p class="text-gray-400 mb-6">
+                Update your post ✨
+            </p>
+
+            <form action="/update/<%= post._id %>" method="POST">
+
+                <textarea 
+                    name="content"
+                    class="w-full h-40 p-5 text-white bg-[#334155] border border-gray-600 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 transition duration-200"
+                ><%= post.content %></textarea>
+
+                <button 
+                    type="submit"
+                    class="w-full mt-6 bg-gradient-to-r from-yellow-500 to-indigo-600 hover:from-blue-600 hover:to-blue-700 text-black font-semibold py-3 rounded-2xl shadow-lg transition duration-300"
+                >
+                    Update Post
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
