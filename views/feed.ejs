@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create User</title>
+    <title>Feed</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
@@ -17,21 +17,20 @@
             <div class="flex justify-between items-center mb-8">
                     
                 <div>
-                    <h1 class="text-3xl font-bold text-white">
-                        Your Profile
-                    </h1>
-
-                    <p class="text-zinc-400 mt-1">
-                       Your personal space.
-                    </p>
+                 <h1 class="text-4xl font-extrabold bg-gradient-to-r from-blue-400 to-pink-400 bg-clip-text text-transparent">
+    Postify
+</h1>
+                    <p class="text-zinc-300 mt-5 text-lg font-medium">
+    Welcome back, <span class="text-white"><%= user.name %></span>!
+</p>
                 </div>
-                <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3">
 
     <a
-        href="/feed"
+        href="/profile"
         class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-xl transition"
     >
-        📰 Feed
+        Profile
     </a>
 
     <a
@@ -44,97 +43,78 @@
 </div>
 
             </div>
-        <div class="w-43 h-45 bg-zinc-500 rounded-md overflow-hidden">
+        <div class="w-43 h-45 bg-zinc-500 rounded-3xl overflow-hidden">
             <img class="w-full h-full object-cover" src="/images/uploads/<%= user.profilepic %>" alt="Profile Picture">
          </div>
-         <a
-    href="/profile/upload"
-    class="inline-block mt-3 bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg transition"
->
-    Change Profile Picture
-</a>
-      
-            <h4 class="text-blue-400 text-lg mb-8 mt-5">
-                Hello, <%= user.name %>
-            </h4>
-
-            <form action="/post" method="POST" class="bg-[#1e293b] p-8  mb-10 rounded-3xl border border-gray-700" enctype="multipart/form-data">
-
-                <h2 class="text-2xl font-bold text-white mb-2 mt-3">
-                    Create a Post
-                </h2>
-
-                <p class="text-gray-400 mb-6">
-                    Share your thoughts with everyone ✨
-                </p>
-
-                <textarea 
-                    placeholder="What's on your mind?"
-                    class="w-full h-40 p-5 text-white bg-[#334155] border border-gray-600 rounded-2xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 transition duration-200"
-                    name="content"
-                    ></textarea>
-
-                    <input
-                       type="file"
-                       name="image"
-                       class="mt-4 text-white"
-                           >
-
-                <button 
-                    type="submit"
-                    class="w-full mt-6 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold py-3 rounded-2xl shadow-lg transition duration-300"
-                >
-                    Create New Post
-                </button>
-
-            </form>
+        
+            
             <div class="mt-20 mb-4">
-                <h3 class="text-blue-400 text-lg">Your Posts</h3>
+                <h3 class="text-blue-400 text-lg"> Your Corner of the Internet ✨</h3>
               
 
               
                           <div class="postcontainer mt-5">
-                            <% user.posts.reverse().forEach(function(post){ %>
+                            <% posts.reverse().forEach(function(post){ %>
 
+                                
                   <div class="bg-[#334155] p-10 rounded-2xl mb-4">
-                <p class="text-gray-200 text-lg leading-relaxed ">
+                    <div class="flex items-center gap-3 mb-4">
+
+        <img src="/images/uploads/<%= post.user.profilepic %>" class="w-12 h-12 rounded-3xl object-cover">
+        <div> <h4 class="text-white font-semibold">
+             <%= post.user.name %>
+                 </h4>
+     <p class="text-gray-400 text-sm"> @<%= post.user.username %> </p>
+           </div>
+
+         </div>
+                <p class="text-gray-200 text-lg leading-relaxed">
                     <%= post.content %>  
                                    </p>
                                 <% if(post.image){ %>
 
     <img
         src="/images/uploads/<%= post.image %>"
-        class="w-full max-w-lg mx-auto mt-5 rounded-xl object-cover shadow-md"
+         class="w-full max-w-lg mx-auto mt-5 rounded-xl object-cover shadow-md"
     >
 
 <% } %>
+<p class="text-xs text-gray-400 mt-3">
+    <%= post.date.toLocaleString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+    }) %>
+</p>
 
                     <small class="mt-2 text-black inline-block"> <%= post.likes.length %> likes</small>
                      <!--like and comment buttons  -->
                   <div class="flex items-center gap-4 mt-4">
 
-   <a href="/like/<%= post._id %>?from=profile"
+    <a href="/like/<%= post._id %>?from=feed"
     class="bg-pink-500 hover:bg-pink-600 text-white px-5 py-2 rounded-xl transition duration-200 shadow-md inline-block">
 
         <%= post.likes.indexOf(user._id) == -1 ? "Like ❤️" : "Unlike ❤️" %>
 
     </a>
+ <% if(post.user._id.equals(user._id)){ %>
 
-    <a 
-        class="text-yellow-400 hover:text-yellow-300"
-        href="/edit/<%= post._id %>"
-    >
-        Edit
-    </a>
-       <a href="/deletepost/<%= post._id %>?from=profile"
-        onclick="return confirm('Delete this post?')"
+    <a  class="text-yellow-400 hover:text-yellow-300"
+        href="/edit/<%= post._id %>" >  Edit </a>
+         <% } %>
+          <% if(post.user._id.equals(user._id)){ %>
+
+    <a href="/deletepost/<%= post._id %>?from=feed"
+    onclick="return confirm('Delete this post?')"
    class="text-red-400 hover:text-red-300">
     Delete
 </a>
-
+         <% } %>
 </div>
 
-<form action="/comment/<%= post._id %>?from=profile" method="POST" class="flex gap-2 mt-4">
+<form action="/comment/<%= post._id %>?from=feed" method="POST" class="flex gap-2 mt-4">
 
     <input
         type="text"
@@ -161,13 +141,13 @@
     <p class="text-white text-sm break-words">
         <%= comment.text %>
     </p>
-
-   <a href="/deletecomment/<%= post._id %>/<%= comment._id %>?from=profile"
+        <% if(comment.user.equals(user._id)){ %>
+    <a href="/deletecomment/<%= post._id %>/<%= comment._id %>?from=feed"
         class="text-red-400 hover:text-red-300 text-sm ml-4 whitespace-nowrap"
     >
         Delete
     </a>
-
+    <% } %>
 </div>
     <% }) %>
 

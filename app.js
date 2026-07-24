@@ -1,19 +1,45 @@
 const express=require('express');
 const app=express();
 const cookieParser = require('cookie-parser');
+const path=require("path");
 app.set("view engine","ejs");
 app.use(express.json());
 app.use(express.urlencoded ({extended : true}));
 app.use(cookieParser());
+app.use(express.static(path.join(__dirname,"public")));
 const userModel=require("./models/user");
 const postModel=require("./models/posts");
 const bcrypt=require('bcrypt');
 const jwt=require("jsonwebtoken");
 const posts = require('./models/posts');
+const crypto=require("crypto");
 
-app.get('/', function(req,res){
+const upload= require("./config/multerconfig");
+
+
+app.get("/", function(req,res){
     res.render("index");
 });
+
+
+app.post("/upload", isLoggedIn , upload.single("image"), async (req,res)=>{
+   let user = await userModel.findOne({ email : req.user.email });
+  if (!req.file) {
+    return res.status(400).send("Please select an image.");
+}
+
+user.profilepic = req.file.filename; 
+
+   await user.save();
+   res.redirect("/profile");
+});
+
+app.get("/profile/upload", function(req,res){
+    res.render("profileupload");
+});
+
+
+
 
 app.get('/login', function(req,res){
     res.render("login");
@@ -35,19 +61,24 @@ app.post('/register', async function(req,res){
         });
         let token = jwt.sign({email: email,userid:user._id},"shhhhhh");
         res.cookie("token",token);
-        res.send("registered");
+      res.redirect("/profile");
    })
    })
   
 });
 
-app.post('/post', isLoggedIn, async function(req,res){
+app.post('/post', isLoggedIn,  upload.single("image"), async function(req,res){
   let user=await  userModel.findOne({email : req.user.email});
   let {content}=req.body
+  let image = "";
+if(req.file){
+    image = req.file.filename;
+}
   let post =  await postModel.create({
     user: user._id,
-    content: content
-  })
+    content: content,
+   image: image
+  });
   user.posts.push(post._id);
   await user.save();
     res.redirect("/profile");
@@ -58,7 +89,14 @@ app.get('/profile', isLoggedIn, async function(req,res){
   
     console.log(user);
     res.render("profile",{user});
-})
+});
+
+app.get("/feed", isLoggedIn, async function(req, res){
+let user = await userModel.findOne({ email: req.user.email });
+    let posts = await postModel.find().populate("user");
+    res.render("feed", { posts, user });
+
+});
 
 app.get('/like/:id', isLoggedIn, async function(req,res){
   let post=await  postModel.findOne({_id : req.params.id}).populate("user");
@@ -72,7 +110,12 @@ else{
 }
  await post.save();
    // console.log(user);
-     res.redirect("/profile");
+   if(req.query.from === "feed"){
+    res.redirect("/feed");
+              }
+           else{
+    res.redirect("/profile");
+     }
 
 });
 
@@ -82,6 +125,23 @@ app.get('/edit/:id', isLoggedIn, async function(req,res){
  
 });
 
+app.get("/deletepost/:id", isLoggedIn, async function(req, res){
+   let post = await postModel.findById(req.params.id);
+   if(!post.user.equals(req.user.userid)){
+    return res.send("Unauthorized");
+   }
+    let user = await userModel.findById(req.user.userid);
+    user.posts.pull(post._id);
+    await user.save();
+    await post.deleteOne();
+  if (req.query.from === "feed") {
+    res.redirect("/feed");
+} else {
+    res.redirect("/profile");
+}
+
+});
+
 app.post('/comment/:id', isLoggedIn, async function(req,res){
   let post=await  postModel.findById(req.params.id);
   post.comments.push({
@@ -89,7 +149,12 @@ app.post('/comment/:id', isLoggedIn, async function(req,res){
     text : req.body.comment
   });
   await post.save();
-  res.redirect("/profile");
+   if(req.query.from === "feed"){
+    res.redirect("/feed");
+              }
+           else{
+    res.redirect("/profile");
+     }
 
  
 }); 
@@ -98,7 +163,12 @@ app.get('/deletecomment/:postid/:commentid', isLoggedIn, async function(req,res)
   let post=await  postModel.findById(req.params.postid);
   post.comments.pull(req.params.commentid);
   await post.save();
-  res.redirect("/profile");
+ if(req.query.from === "feed"){
+    res.redirect("/feed");
+              }
+           else{
+    res.redirect("/profile");
+     }
 });  
 
 app.post('/update/:id', isLoggedIn, async function(req,res){
