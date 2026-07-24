@@ -1,5 +1,9 @@
 const express=require('express');
 const app=express();
+
+require("dotenv").config();
+require("./config/mongoose-configuration");
+
 const cookieParser = require('cookie-parser');
 const path=require("path");
 app.set("view engine","ejs");
