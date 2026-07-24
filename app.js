@@ -2,6 +2,7 @@ const express=require('express');
 const app=express();
 
 require("dotenv").config();
+console.log("JWT_SECRET:", process.env.JWT_SECRET);
 require("./config/mongoose-configuration");
 
 const cookieParser = require('cookie-parser');
@@ -63,7 +64,7 @@ app.post('/register', async function(req,res){
             name,
            password : hash
         });
-        let token = jwt.sign({email: email,userid:user._id},"shhhhhh");
+        let token = jwt.sign({email: email,userid:user._id},process.env.JWT_SECRET);
         res.cookie("token",token);
       res.redirect("/profile");
    })
@@ -187,7 +188,7 @@ app.post('/login', async function(req,res){
 
   bcrypt.compare(password,user.password,function(err,result){
      if(result) {
-        let token = jwt.sign({email: email,userid:user._id},"shhhhhh");
+        let token = jwt.sign({email: email,userid:user._id},process.env.JWT_SECRET);
         res.cookie("token",token);
         res.status(200).redirect("/profile");  
      }
@@ -203,10 +204,14 @@ app.get('/logout', function(req,res){
 
 function isLoggedIn(req,res,next){
     if(!req.cookies.token) return res.send("you must be logged in");
-  let data = jwt.verify(req.cookies.token, "shhhhhh");
+  let data = jwt.verify(req.cookies.token,process.env.JWT_SECRET);
     req.user = data;
     next();
 }
 
 
-app.listen(3000);
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
