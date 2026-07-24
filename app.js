@@ -96,19 +96,9 @@ app.get('/profile', isLoggedIn, async function(req,res){
     res.render("profile",{user});
 });
 
-/*app.get("/feed", isLoggedIn, async function(req, res){
-let user = await userModel.findOne({ email: req.user.email });
-    let posts = await postModel.find().populate("user");
-    res.render("feed", { posts, user });
-
-});*/
-app.get("/feed", isLoggedIn, async function(req, res){
+app.get("/feed", isLoggedIn, async function(req, res){ 
     let user = await userModel.findOne({ email: req.user.email });
-
     let posts = await postModel.find().populate("user");
-
-   
-    posts = posts.filter(post => post.user);
 
     res.render("feed", { posts, user });
 });
